@@ -19,8 +19,8 @@ const getUser = async (email) => {
     })
 }
 
-const getCalorieData = async (config, calId) => {
-    const startDate1 = new Date();
+const getCalorieData = async (config, calId, startTime) => {
+    const startDate1 = startTime;
     startDate1.setDate(1);
     // startDate1.setMonth(startDate1.getMonth() -1); // Subtract one month from current date
     const startTimeMillis = startDate1.getTime(); // Get start time in milliseconds
@@ -72,6 +72,7 @@ const addUser = async (email, name, acctk, reftk, calorie) => {
     userm.name = name;
     userm.acctk = acctk;
     userm.reftk = reftk;
+    userm.lastupdt = Date.now();
     await userm.save()
 }
 
@@ -79,6 +80,7 @@ const fetchData = async (req, res) => {
     const acctk = req.body.acctk;
     const reftk = req.body.reftk;
     const checkFetch = req.body.checkFetch;
+    const exercise = req.body.exercise;
     const config = {
         headers: {
             'Authorization': 'Bearer ' + acctk
@@ -100,20 +102,15 @@ const fetchData = async (req, res) => {
                             })
                         }
                         else{
-                            await getCalorieData(config, calId).then(async (resp4) => {
-                                let calorie = calculateCalorie(resp4);
-                                await addUser(email, name, acctk,reftk, calorie).then((resp5) => {
-                                    res.status(200).send({
-                                        'message' : 'User added',
-                                        'email': email,
-                                        'name': name
-                                    });
-                                }).catch((er5) => {
-                                    res.status(400).send(er5);
+                            await addUser(email, name, acctk,reftk, []).then((resp5) => {
+                                res.status(200).send({
+                                    'message' : 'User added',
+                                    'email': email,
+                                    'name': name
                                 });
-                            }).catch((er4) => {
-                                res.status(400).send(er4);
-                            })
+                            }).catch((er5) => {
+                                res.status(400).send(er5);
+                            });
                         }
                     }).catch((er3) => {
                         res.status(403).send(er3);
@@ -124,7 +121,7 @@ const fetchData = async (req, res) => {
                         await userModel.updateOne({
                             email: email
                         }, {
-                            lastupdt : new Date()
+                            lastupdt : Date.now()
                         }).then((resp6) => {
                             res.status(200).send({
                                 'message': 'User checked in'
@@ -134,9 +131,44 @@ const fetchData = async (req, res) => {
                         });
                     }
                     else{
-                        await getCalorieData(config, resp1[0].email).then((resp2)=>{
+                        await getCalorieData(config, resp1[0].email, resp1[0].lastupdt).then((resp2)=>{
                             let calorie = calculateCalorie(resp2);
-                            
+                            if(resp1[0].todayDt === `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`){
+                                let calo = resp1[0].calorieBurnt[resp1[0].calorieBurnt.length - 1];
+                                calo.push({
+                                    'exercise' : exercise,
+                                    'calories': calorie
+                                });
+                                userModel.updateOne({
+                                    email: email
+                                }, {
+                                    calorieBurnt : resp1[0].calorieBurnt.push(calo)
+                                }).then((resp2) => {
+                                    res.status(200).send({
+                                        'message': 'User data updated'
+                                    });
+                                }).catch((er2) => {
+                                    res.status(403).send(er2);
+                                });
+                            }
+                            else{
+                                let ar = [{
+                                    'exercise' : exercise,
+                                    'calories': calorie
+                                }];
+                                userModel.updateOne({
+                                    email: email
+                                }, {
+                                    todayDt: `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`,
+                                    calorieBurnt : resp1[0].calorieBurnt.push(ar)
+                                }).then((resp2) => {
+                                    res.status(200).send({
+                                        'message': 'User updated'
+                                    });
+                                }).catch((er2) => {
+                                    res.status(400).send(er2);
+                                })
+                            }
                         })
                     }
                 }

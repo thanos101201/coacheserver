@@ -1,4 +1,3 @@
-const userModel = require('../../models/user');
 const { google } = require('googleapis');
 const request = require('request');
 const urlParse = require('url-parse');

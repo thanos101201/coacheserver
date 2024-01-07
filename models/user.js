@@ -19,7 +19,10 @@ const userSchema = mongoose.Schema({
     loctk : {
         type: String
     },
-    lastUpDt : {
+    lastupdt : {
+        type: Date
+    },
+    todayDt: {
         type: Date
     }
 });
