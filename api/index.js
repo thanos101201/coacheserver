@@ -12,6 +12,9 @@ app.use(cors({
         'DELETE'
     ]
 }));
+
+require('../db/db');
+
 app.use(express.json());
 
 app.get('/', (req, res) => {
