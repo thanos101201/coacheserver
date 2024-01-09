@@ -157,7 +157,9 @@ const udateData = async(req, res) => {
                                     calorieBurnt: cal
                                 }).then((resp3) => {
                                     res.status(200).send({
-                                        'message': 'Data updated'
+                                        'message': 'Data updated',
+                                        'acctk': acctk,
+                                        'reftk': reftk
                                     })
                                 }).catch((er3) => {
                                     res.status(400).send(er3);
