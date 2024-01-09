@@ -76,106 +76,128 @@ const addUser = async (email, name, acctk, reftk, calorie) => {
     await userm.save()
 }
 
+const getToken = async (code) => {
+    return await axios.post('https://oauth2.googleapis.com/token', {
+        code: code,
+        client_id: `611658826728-gp7el8t7t63g46o807c6unjd99tfg4lm.apps.googleusercontent.com`,
+        client_secret: `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`,
+        redirect_uri: 'https://healthcheckclient.vercel.app/sign',
+        grant_type: 'authorization_code'
+    })
+}
+
 const fetchData = async (req, res) => {
-    const acctk = req.body.acctk;
-    const reftk = req.body.reftk;
-    const checkFetch = req.body.checkFetch;
-    const exercise = req.body.exercise;
-    const config = {
-        headers: {
-            'Authorization': 'Bearer ' + acctk
-        }
-    };
-
-    await getUserDetail(config).then(async(resp1) => {
+    const headers = req.headers.code;
+    await getToken(code).then(async (resp101) => {
         if(resp1.status === 200){
-            let email = resp1.data.email;
-            let name = resp1.data.name;
-
-            await getUser(email).then(async (resp2) => {
-                if(resp2.length === 0){
-                    fetchStreamIdStore(config).then(async (resp3) => {
-                        let calId = obtainCalId(resp3);
-                        if(calId === ""){
-                            res.status(400).send({
-                                'message': 'Please install application'
+            const acctk = resp101.data.access_token;
+            const reftk = resp101.data.refresh_token;
+            const checkFetch = req.body.checkFetch;
+            const exercise = req.body.exercise;
+            const config = {
+                headers: {
+                    'Authorization': 'Bearer ' + acctk
+                }
+            };
+        
+            await getUserDetail(config).then(async(resp1) => {
+                if(resp1.status === 200){
+                    let email = resp1.data.email;
+                    let name = resp1.data.name;
+        
+                    await getUser(email).then(async (resp2) => {
+                        if(resp2.length === 0){
+                            fetchStreamIdStore(config).then(async (resp3) => {
+                                let calId = obtainCalId(resp3);
+                                if(calId === ""){
+                                    res.status(400).send({
+                                        'message': 'Please install application'
+                                    })
+                                }
+                                else{
+                                    await addUser(email, name, acctk,reftk, []).then((resp5) => {
+                                        res.status(200).send({
+                                            'message' : 'User added',
+                                            'email': email,
+                                            'name': name
+                                        });
+                                    }).catch((er5) => {
+                                        res.status(400).send(er5);
+                                    });
+                                }
+                            }).catch((er3) => {
+                                res.status(403).send(er3);
                             })
                         }
                         else{
-                            await addUser(email, name, acctk,reftk, []).then((resp5) => {
-                                res.status(200).send({
-                                    'message' : 'User added',
-                                    'email': email,
-                                    'name': name
-                                });
-                            }).catch((er5) => {
-                                res.status(400).send(er5);
-                            });
-                        }
-                    }).catch((er3) => {
-                        res.status(403).send(er3);
-                    })
-                }
-                else{
-                    if(checkFetch){
-                        await userModel.updateOne({
-                            email: email
-                        }, {
-                            lastupdt : Date.now()
-                        }).then((resp6) => {
-                            res.status(200).send({
-                                'message': 'User checked in'
-                            })
-                        }).catch((er6) => {
-                            res.status(400).send(er6);
-                        });
-                    }
-                    else{
-                        await getCalorieData(config, resp1[0].email, resp1[0].lastupdt).then((resp2)=>{
-                            let calorie = calculateCalorie(resp2);
-                            if(resp1[0].todayDt === `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`){
-                                let calo = resp1[0].calorieBurnt[resp1[0].calorieBurnt.length - 1];
-                                calo.push({
-                                    'exercise' : exercise,
-                                    'calories': calorie
-                                });
-                                userModel.updateOne({
+                            if(checkFetch){
+                                await userModel.updateOne({
                                     email: email
                                 }, {
-                                    calorieBurnt : resp1[0].calorieBurnt.push(calo)
-                                }).then((resp2) => {
+                                    lastupdt : Date.now()
+                                }).then((resp6) => {
                                     res.status(200).send({
-                                        'message': 'User data updated'
-                                    });
-                                }).catch((er2) => {
-                                    res.status(403).send(er2);
+                                        'message': 'User checked in'
+                                    })
+                                }).catch((er6) => {
+                                    res.status(400).send(er6);
                                 });
                             }
                             else{
-                                let ar = [{
-                                    'exercise' : exercise,
-                                    'calories': calorie
-                                }];
-                                userModel.updateOne({
-                                    email: email
-                                }, {
-                                    todayDt: `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`,
-                                    calorieBurnt : resp1[0].calorieBurnt.push(ar)
-                                }).then((resp2) => {
-                                    res.status(200).send({
-                                        'message': 'User updated'
-                                    });
-                                }).catch((er2) => {
-                                    res.status(400).send(er2);
+                                await getCalorieData(config, resp1[0].email, resp1[0].lastupdt).then((resp2)=>{
+                                    let calorie = calculateCalorie(resp2);
+                                    if(resp1[0].todayDt === `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`){
+                                        let calo = resp1[0].calorieBurnt[resp1[0].calorieBurnt.length - 1];
+                                        calo.push({
+                                            'exercise' : exercise,
+                                            'calories': calorie
+                                        });
+                                        userModel.updateOne({
+                                            email: email
+                                        }, {
+                                            calorieBurnt : resp1[0].calorieBurnt.push(calo)
+                                        }).then((resp2) => {
+                                            res.status(200).send({
+                                                'message': 'User data updated'
+                                            });
+                                        }).catch((er2) => {
+                                            res.status(403).send(er2);
+                                        });
+                                    }
+                                    else{
+                                        let ar = [{
+                                            'exercise' : exercise,
+                                            'calories': calorie
+                                        }];
+                                        userModel.updateOne({
+                                            email: email
+                                        }, {
+                                            todayDt: `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`,
+                                            calorieBurnt : resp1[0].calorieBurnt.push(ar)
+                                        }).then((resp2) => {
+                                            res.status(200).send({
+                                                'message': 'User updated'
+                                            });
+                                        }).catch((er2) => {
+                                            res.status(400).send(er2);
+                                        })
+                                    }
                                 })
                             }
-                        })
-                    }
+                        }
+                    }).catch((er2) => {
+                        res.status(403).send(er2);
+                    })
                 }
-            }).catch((er2) => {
-                res.status(403).send(er2);
             })
         }
+        else{
+            res.status(400).send({
+                'message': 'Please signing again'
+            });
+        }
+    }).catch((er101) => {
+        res.status(400).send(er101);
     })
 
 }
