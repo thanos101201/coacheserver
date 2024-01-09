@@ -24,6 +24,10 @@ const userSchema = mongoose.Schema({
     },
     todayDt: {
         type: Date
+    },
+    calId: {
+        type: String,
+        required: true
     }
 });
 
