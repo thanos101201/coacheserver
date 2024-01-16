@@ -28,6 +28,9 @@ const userSchema = mongoose.Schema({
     calId: {
         type: String,
         required: true
+    },
+    exercise :{
+        type: String
     }
 });
 

@@ -66,7 +66,7 @@ const udateData = async(req, res) => {
     try{
         const reftk = req.headers.reftk;
         const acctk = req.headers.acctk;
-        const exercise = req.headers.exercise;
+        // const exercise = req.headers.exercise;
 
         const oauth2Client = new google.auth.OAuth2(
             process.env.CLIENT_ID,
@@ -83,11 +83,12 @@ const udateData = async(req, res) => {
             let email = resp101.data.emailAddresses;
             await getUser(email).then(async (resp1) => {
                 if(resp1.length === 0){
-                    res.status(200).send({
+                    res.status(403).send({
                         'message': 'User not registered'
                     });
                 }
                 else{
+                    const exercise = resp101[0].exercise;
                     let streadId = resp1[0].calId;
                     await getCalorieData(streadId).then(async (resp2) => {
                         let calorie = calculateCalorie(resp2);
@@ -101,7 +102,8 @@ const udateData = async(req, res) => {
                         await userModel.updateOne({
                             email: email
                         }, {
-                            calorieBurnt: cal
+                            calorieBurnt: cal,
+                            exercise: 'none'
                         }).then((resp3) => {
                             res.status(200).send({
                                 'message': 'Data updated'
