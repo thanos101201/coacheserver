@@ -1,17 +1,19 @@
 const userModel = require('../models/user');
-
+const axios = require('axios');
 const getUserDetail = async (config) => {
     return await axios.get('https://openidconnect.googleapis.com/v1/userinfo', config)
 }
 
 const get = async(req, res) => {
     const acctk = req.headers.acctk;
+    console.log(`acctk :- ${acctk}`);
     const config = {
         headers: {
             'Authorization': 'Bearer ' + acctk
         }
     };
     await getUserDetail(config).then((resp101) => {
+        // console.log(resp101);
         if(resp101.status === 200){
             userModel.find({
                 email: resp101.data.email
@@ -28,7 +30,8 @@ const get = async(req, res) => {
 
         }
     }).catch((er101) => {
-        res.status(400).send(er101);
+        // console.log(er101);
+        res.status(400).send(er101.message);
     });
 }
 

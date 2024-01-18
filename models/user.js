@@ -23,7 +23,7 @@ const userSchema = mongoose.Schema({
         type: Date
     },
     todayDt: {
-        type: Date
+        type: String
     },
     calId: {
         type: String,

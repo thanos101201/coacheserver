@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const user = require('../controllers/users');
 const login = require('../routers/login');
+const getUser = require('../routers/getUser');
 const app = express();
 app.use(cors({
     origin: '*',
@@ -22,11 +23,16 @@ app.get('/', (req, res) => {
 })
 
 app.use('/user', (req, res) => {
+    console.log('heres');
    user(req, res); 
 });
 
 app.get('/login', (req, res) => {
     login(req, res);
+})
+
+app.post('/gtuser', (req, res) => {
+    getUser(req, res);
 })
 
 app.listen(3001, () => {

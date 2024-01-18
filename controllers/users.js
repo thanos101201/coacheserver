@@ -11,6 +11,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
+    console.log('namaste');
     fetchData(req, res);
 });
 

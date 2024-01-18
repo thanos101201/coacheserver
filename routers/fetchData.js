@@ -14,7 +14,8 @@ const obtainCalId  = (resp3) => {
 }
 
 const getUser = async (email) => {
-    await userModel.find({
+    // console.log(`The email is : ${email}`);
+    return await userModel.find({
         email: email
     })
 }
@@ -66,12 +67,13 @@ const calculateCalorie = (resp5) => {
     return cals;
 }
 
-const addUser = async (email, name, acctk, reftk, calorie) => {
+const addUser = async (email, name, acctk, reftk, calorie, calId) => {
     let userm = new userModel();
     userm.email = email;
     userm.name = name;
     userm.acctk = acctk;
     userm.reftk = reftk;
+    userm.calId = calId;
     userm.lastupdt = Date.now();
     await userm.save()
 }
@@ -81,17 +83,19 @@ const getToken = async (code) => {
         code: code,
         client_id: `611658826728-gp7el8t7t63g46o807c6unjd99tfg4lm.apps.googleusercontent.com`,
         client_secret: `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`,
-        redirect_uri: 'https://healthcheckclient.vercel.app/sign',
+        redirect_uri: 'http://localhost:3000/sign',
         grant_type: 'authorization_code'
     })
 }
 
 const fetchData = async (req, res) => {
-    const headers = req.headers.code;
+    const code = req.headers.code;
+    // console.log(code);
     await getToken(code).then(async (resp101) => {
-        if(resp1.status === 200){
+        if(resp101.status === 200){
             const acctk = resp101.data.access_token;
             const reftk = resp101.data.refresh_token;
+            console.log(`acctk : ${acctk}`);
             const checkFetch = req.body.checkFetch;
             const exercise = req.body.exercise;
             const config = {
@@ -104,10 +108,19 @@ const fetchData = async (req, res) => {
                 if(resp1.status === 200){
                     let email = resp1.data.email;
                     let name = resp1.data.name;
-        
+
                     await getUser(email).then(async (resp2) => {
-                        if(resp2.length === 0){
+                        console.log(`email : ${email} length : ${resp2.length}`);
+                        // if(resp2 === undefined){
+                        //     console.log(resp2);
+                        //     res.status(200).send({
+                        //         message: 'nam'
+                        //     });
+                        //     return;
+                        // }
+                        if(resp2 === undefined || resp2.length === 0){
                             fetchStreamIdStore(config).then(async (resp3) => {
+                                console.log(resp3);
                                 let calId = obtainCalId(resp3);
                                 if(calId === ""){
                                     res.status(400).send({
@@ -115,7 +128,7 @@ const fetchData = async (req, res) => {
                                     })
                                 }
                                 else{
-                                    await addUser(email, name, acctk,reftk, []).then((resp5) => {
+                                    await addUser(email, name, acctk,reftk, [], calId).then((resp5) => {
                                         res.status(200).send({
                                             'message' : 'User added',
                                             'email': email,
@@ -130,62 +143,70 @@ const fetchData = async (req, res) => {
                             })
                         }
                         else{
-                            if(checkFetch){
-                                await userModel.updateOne({
-                                    email: email
-                                }, {
-                                    lastupdt : Date.now()
-                                }).then((resp6) => {
-                                    res.status(200).send({
-                                        'message': 'User checked in'
-                                    })
-                                }).catch((er6) => {
-                                    res.status(400).send(er6);
-                                });
-                            }
-                            else{
-                                await getCalorieData(config, resp1[0].email, resp1[0].lastupdt).then((resp2)=>{
-                                    let calorie = calculateCalorie(resp2);
-                                    if(resp1[0].todayDt === `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`){
-                                        let calo = resp1[0].calorieBurnt[resp1[0].calorieBurnt.length - 1];
-                                        calo.push({
-                                            'exercise' : exercise,
-                                            'calories': calorie
-                                        });
-                                        userModel.updateOne({
-                                            email: email
-                                        }, {
-                                            calorieBurnt : resp1[0].calorieBurnt.push(calo)
-                                        }).then((resp2) => {
-                                            res.status(200).send({
-                                                'message': 'User data updated'
-                                            });
-                                        }).catch((er2) => {
-                                            res.status(403).send(er2);
-                                        });
-                                    }
-                                    else{
-                                        let ar = [{
-                                            'exercise' : exercise,
-                                            'calories': calorie
-                                        }];
-                                        userModel.updateOne({
-                                            email: email
-                                        }, {
-                                            todayDt: `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`,
-                                            calorieBurnt : resp1[0].calorieBurnt.push(ar)
-                                        }).then((resp2) => {
-                                            res.status(200).send({
-                                                'message': 'User updated'
-                                            });
-                                        }).catch((er2) => {
-                                            res.status(400).send(er2);
-                                        })
-                                    }
-                                })
-                            }
+                            res.status(200).send({
+                                'message' : 'User logged in',
+                                'acctk' : resp101.data.access_token,
+                                'reftk' : resp101.data.refresh_token
+                            });
+                            // if(checkFetch){
+                            //     await userModel.updateOne({
+                            //         email: email
+                            //     }, {
+                            //         lastupdt : Date.now()
+                            //     }).then((resp6) => {
+                            //         res.status(200).send({
+                            //             'message': 'User checked in'
+                            //         })
+                            //     }).catch((er6) => {
+                            //         res.status(400).send(er6);
+                            //     });
+                            // }
+                            // else{
+                            //     await getCalorieData(config, resp2[0].calId, resp2[0].lastupdt).then((resp3)=>{
+                            //         let calorie = calculateCalorie(resp3);
+                            //         console.log(calorie);
+                            //         if(resp2[0].todayDt === `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`){
+                            //             let calo = resp2[0].calorieBurnt[resp2[0].calorieBurnt.length - 1];
+                            //             console.log(calo);
+                            //             calo.push({
+                            //                 'exercise' : exercise,
+                            //                 'calories': calorie
+                            //             });
+                            //             userModel.updateOne({
+                            //                 email: email
+                            //             }, {
+                            //                 calorieBurnt : resp2[0].calorieBurnt.push(calo)
+                            //             }).then((resp2) => {
+                            //                 res.status(200).send({
+                            //                     'message': 'User data updated'
+                            //                 });
+                            //             }).catch((er2) => {
+                            //                 res.status(403).send(er2);
+                            //             });
+                            //         }
+                            //         else{
+                            //             let ar = [{
+                            //                 'exercise' : exercise,
+                            //                 'calories': calorie
+                            //             }];
+                            //             userModel.updateOne({
+                            //                 email: email
+                            //             }, {
+                            //                 todayDt: `${new Date().getDate()} / ${new Date().getMonth()} / ${new Date().getFullYear()}`,
+                            //                 calorieBurnt : resp2[0].calorieBurnt.push(ar)
+                            //             }).then((resp2) => {
+                            //                 res.status(200).send({
+                            //                     'message': 'User updated'
+                            //                 });
+                            //             }).catch((er2) => {
+                            //                 res.status(400).send(er2);
+                            //             })
+                            //         }
+                            //     })
+                            // }
                         }
                     }).catch((er2) => {
+                        console.log(er2);
                         res.status(403).send(er2);
                     })
                 }
