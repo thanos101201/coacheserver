@@ -83,7 +83,7 @@ const getToken = async (code) => {
         code: code,
         client_id: `611658826728-gp7el8t7t63g46o807c6unjd99tfg4lm.apps.googleusercontent.com`,
         client_secret: `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`,
-        redirect_uri: 'http://localhost:3000/sign',
+        redirect_uri: 'https://coachclient.vercel.app/sign',
         grant_type: 'authorization_code'
     })
 }
