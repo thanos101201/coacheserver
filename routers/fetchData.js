@@ -95,7 +95,7 @@ const fetchData = async (req, res) => {
         if(resp101.status === 200){
             const acctk = resp101.data.access_token;
             const reftk = resp101.data.refresh_token;
-            console.log(`acctk : ${acctk}`);
+            // console.log(`acctk : ${acctk}`);
             const checkFetch = req.body.checkFetch;
             const exercise = req.body.exercise;
             const config = {
@@ -110,7 +110,7 @@ const fetchData = async (req, res) => {
                     let name = resp1.data.name;
 
                     await getUser(email).then(async (resp2) => {
-                        console.log(`email : ${email} length : ${resp2.length}`);
+                        // console.log(`email : ${email} length : ${resp2.length}`);
                         // if(resp2 === undefined){
                         //     console.log(resp2);
                         //     res.status(200).send({
@@ -120,7 +120,7 @@ const fetchData = async (req, res) => {
                         // }
                         if(resp2 === undefined || resp2.length === 0){
                             fetchStreamIdStore(config).then(async (resp3) => {
-                                console.log(resp3);
+                                // console.log(resp3);
                                 let calId = obtainCalId(resp3);
                                 if(calId === ""){
                                     res.status(400).send({
@@ -206,7 +206,7 @@ const fetchData = async (req, res) => {
                             // }
                         }
                     }).catch((er2) => {
-                        console.log(er2);
+                        // console.log(er2);
                         res.status(403).send(er2);
                     })
                 }

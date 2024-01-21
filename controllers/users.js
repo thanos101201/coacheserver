@@ -3,6 +3,7 @@ const fetchData = require('../routers/fetchData');
 const get = require('../routers/get');
 const updateData = require('../routers/updateData');
 const setExercise = require('../routers/setExercise');
+const getCal = require('../routers/getCal');
 
 const router = express.Router();
 
@@ -22,5 +23,7 @@ router.get('/update', (req, res) => {
 router.put('/', (req, res) => {
     setExercise(req, res);
 })
-
+router.get('/cal' , (req, res) => {
+    getCal(req, res);
+})
 module.exports = router;

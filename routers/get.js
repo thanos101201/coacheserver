@@ -13,7 +13,7 @@ const get = async(req, res) => {
         }
     };
     await getUserDetail(config).then((resp101) => {
-        // console.log(resp101);
+        console.log(resp101);
         if(resp101.status === 200){
             userModel.find({
                 email: resp101.data.email
@@ -30,7 +30,7 @@ const get = async(req, res) => {
 
         }
     }).catch((er101) => {
-        // console.log(er101);
+        console.log(er101);
         res.status(400).send(er101.message);
     });
 }

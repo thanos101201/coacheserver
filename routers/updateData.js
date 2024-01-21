@@ -16,9 +16,13 @@ const getEmail = async (authClient) => {
     });
 }
 
+const getUserDetail = async (config) => {
+    return await axios.get('https://openidconnect.googleapis.com/v1/userinfo', config)
+}
+
 const getCalorieData = async (config, calId, startTime) => {
     const startDate1 = startTime;
-    startDate1.setDate(1);
+    // startDate1.setDate(1);
     // startDate1.setMonth(startDate1.getMonth() -1); // Subtract one month from current date
     const startTimeMillis = startDate1.getTime(); // Get start time in milliseconds
     const endTimeMillis = Date.now();
@@ -56,7 +60,7 @@ const calculateCalorie = (resp5) => {
 }
 
 const getUser = async (email) => {
-    await userModel.find({
+    return await userModel.find({
         email: email
     })
 }
@@ -67,52 +71,67 @@ const udateData = async(req, res) => {
         const reftk = req.headers.reftk;
         const acctk = req.headers.acctk;
         // const exercise = req.headers.exercise;
-
+        console.log(`acctk : ${acctk}`);
         const oauth2Client = new google.auth.OAuth2(
-            process.env.CLIENT_ID,
-            process.env.CLIENT_SECRET,
+            "611658826728-gp7el8t7t63g46o807c6unjd99tfg4lm.apps.googleusercontent.com",
+            "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",
             "http://localhost:3000/sign",
             true
         );
         oauth2Client.setCredentials({
             access_token: acctk,
         });
-        const peopleAPI = getEmail(oauth2Client)
-
-        peopleAPI.then(async (resp101) => {
-            let email = resp101.data.emailAddresses;
+        
+        const config = {
+            headers: {
+                'Authorization': 'Bearer ' + acctk
+            }
+        }
+        await getUserDetail(config).then(async (resp101) => {
+            let email = resp101.data.email;
+            
+            console.log(`email : ${email} in setuser`);
             await getUser(email).then(async (resp1) => {
+                //console.log(resp1);
                 if(resp1.length === 0){
                     res.status(403).send({
                         'message': 'User not registered'
                     });
                 }
                 else{
-                    const exercise = resp101[0].exercise;
+                    console.log(`User found`);
+                    const exercise = resp1[0].exercise;
                     let streadId = resp1[0].calId;
-                    await getCalorieData(streadId).then(async (resp2) => {
+                    console.log(`streamId : ${streadId}`);
+                    await getCalorieData(config, streadId, resp1[0].lastupdt).then(async (resp2) => {
+                        console.log(resp2);
                         let calorie = calculateCalorie(resp2);
-                        let calories = resp1[0].calorieBurnt[resp1[0].calorieBurnt.length - 1];
+                        console.log(`calorie : ${calorie}`);
+                        let calories = resp1[0].calorieBurnt;
+                        console.log(`length of calories : ${resp1[0].calorieBurnt.length}`);
                         calories.push({
                             'exercise' : exercise,
                             'calories': calorie
                         });
-                        let cal = resp1[0].calorieBurnt
-                        cal[cal.length - 1] = calories;
+                        // let cal = resp1[0].calorieBurnt
+                        // cal[cal.length - 1] = calories;
                         await userModel.updateOne({
                             email: email
                         }, {
-                            calorieBurnt: cal,
+                            calorieBurnt: calories,
                             exercise: 'none'
                         }).then((resp3) => {
                             res.status(200).send({
-                                'message': 'Data updated'
+                                'message': 'Data updated',
+                                'acctk' : acctk,
+                                'reftk' : reftk
                             })
                         }).catch((er3) => {
                             res.status(400).send(er3);
                         })
 
                     }).catch((er2) => {
+                        console.log(er2);
                         res.status(400).send(er2);
                     })
                 }
@@ -132,8 +151,10 @@ const udateData = async(req, res) => {
                 });
 
                 let peopleApi = getEmail(oauth2Client)
-
-                peopleAPI.then( async (resp303) => {
+                const config = {
+                    'Authorization': 'Bearer ' + acctk
+                }
+                await getUserDetail(config).then( async (resp303) => {
 
                     let email = resp303.data.emailAddresses;
                     await getUser(email).then(async (resp1) => {
@@ -144,7 +165,7 @@ const udateData = async(req, res) => {
                         }
                         else{
                             let streadId = resp1[0].calId;
-                            await getCalorieData(streadId).then(async (resp2) => {
+                            await getCalorieData(config, streadId, resp1[0].lastupdt).then(async (resp2) => {
                                 let calorie = calculateCalorie(resp2);
                                 let calories = resp1[0].calorieBurnt[resp1[0].calorieBurnt.length - 1];
                                 calories.push({
