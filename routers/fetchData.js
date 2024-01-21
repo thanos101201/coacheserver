@@ -1,5 +1,8 @@
 const axios = require('axios');
 const userModel = require('../models/user');
+
+// const redirectUri = "http://localhost:3000";
+const redirectUri = "https://coachclient.vercel.app";
 const obtainCalId  = (resp3) => {
     let cal_id = "";
     if(resp3.data.dataSource !== undefined && resp3.data.dataSource.length > 0){
@@ -83,7 +86,7 @@ const getToken = async (code) => {
         code: code,
         client_id: `611658826728-gp7el8t7t63g46o807c6unjd99tfg4lm.apps.googleusercontent.com`,
         client_secret: `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`,
-        redirect_uri: 'https://coachclient.vercel.app/sign',
+        redirect_uri: `${redirectUri}/sign`,
         grant_type: 'authorization_code'
     })
 }

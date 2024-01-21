@@ -6,10 +6,12 @@ const login = (req, res) => {
     // const email = req.body.email;
     // console.log(email);
     // const state = { em : email};
+    // const redirectUri = "http://localhost:3000";
+    const redirectUri = "https://coachclient.vercel.app"
     const oauth2Client = new google.auth.OAuth2(
         "611658826728-gp7el8t7t63g46o807c6unjd99tfg4lm.apps.googleusercontent.com",
         "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",
-        "https://coachclient.vercel.app/sign"
+        `${redirectUri}/sign`
         );
         
     const scopes = ["https://www.googleapis.com/auth/fitness.activity.read profile email openid"]
