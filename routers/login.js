@@ -2,12 +2,13 @@ const { google } = require('googleapis');
 const request = require('request');
 const urlParse = require('url-parse');
 const queryPArse = require('query-string');
+require('dotenv').config();
 const login = (req, res) => {
     // const email = req.body.email;
     // console.log(email);
     // const state = { em : email};
     // const redirectUri = "http://localhost:3000";
-    const redirectUri = "https://coachclient.vercel.app"
+    const redirectUri = process.env.CLIENT_URL; //"https://coachclient.vercel.app"
     const oauth2Client = new google.auth.OAuth2(
         "611658826728-gp7el8t7t63g46o807c6unjd99tfg4lm.apps.googleusercontent.com",
         "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",

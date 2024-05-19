@@ -3,6 +3,8 @@ const cors = require('cors');
 const user = require('../controllers/users');
 const login = require('../routers/login');
 const getUser = require('../routers/getUser');
+require('dotenv').config();
+
 const app = express();
 app.use(cors({
     origin: '*',

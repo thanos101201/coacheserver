@@ -1,5 +1,6 @@
 const userModel = require("../models/user");
 const axios = require('axios');
+require('dotenv').config();
 const getUserDetail = async (config) => {
     return await axios.get('https://openidconnect.googleapis.com/v1/userinfo', config)
 }
@@ -13,7 +14,6 @@ const getCal = async(req, res) => {
             'Authorization': 'Bearer ' + acctk
         }
     };
-    console.log(`acctoken : ${acctk}`);
     await getUserDetail(config).then((resp101) => {
         // console.log(resp101.data.email);
         userModel.find({

@@ -17,6 +17,7 @@ router.post('/', (req, res) => {
 });
 
 router.get('/update', (req, res) => {
+    console.log('In the updated.');
     updateData(req, res);
 });
 

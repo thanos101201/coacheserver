@@ -1,8 +1,8 @@
 const axios = require('axios');
 const userModel = require('../models/user');
-
+require('dotenv').config();
 // const redirectUri = "http://localhost:3000";
-const redirectUri = "https://coachclient.vercel.app";
+const redirectUri = process.env.CLIENT_URL; //"https://coachclient.vercel.app";
 const obtainCalId  = (resp3) => {
     let cal_id = "";
     if(resp3.data.dataSource !== undefined && resp3.data.dataSource.length > 0){
@@ -92,14 +92,14 @@ const getToken = async (code) => {
 }
 
 const fetchData = async (req, res) => {
+    console.log(`redirect uri :- ${redirectUri}`);
     const code = req.headers.code;
-    // console.log(code);
     await getToken(code).then(async (resp101) => {
         if(resp101.status === 200){
             const acctk = resp101.data.access_token;
             const reftk = resp101.data.refresh_token;
-            // console.log(`acctk : ${acctk}`);
-            const checkFetch = req.body.checkFetch;
+            console.log(`acctk : ${acctk}`);
+            const checkFetch = req.headers.checkFetch;
             const exercise = req.body.exercise;
             const config = {
                 headers: {
@@ -113,17 +113,8 @@ const fetchData = async (req, res) => {
                     let name = resp1.data.name;
 
                     await getUser(email).then(async (resp2) => {
-                        // console.log(`email : ${email} length : ${resp2.length}`);
-                        // if(resp2 === undefined){
-                        //     console.log(resp2);
-                        //     res.status(200).send({
-                        //         message: 'nam'
-                        //     });
-                        //     return;
-                        // }
                         if(resp2 === undefined || resp2.length === 0){
                             fetchStreamIdStore(config).then(async (resp3) => {
-                                // console.log(resp3);
                                 let calId = obtainCalId(resp3);
                                 if(calId === ""){
                                     res.status(400).send({

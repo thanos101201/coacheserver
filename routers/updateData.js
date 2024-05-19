@@ -1,5 +1,6 @@
 const axios = require('axios');
 const userModel = require('../models/user');
+require('dotenv').config();
 
 const { google } = require('googleapis');
 
@@ -21,6 +22,7 @@ const getUserDetail = async (config) => {
 }
 
 const getCalorieData = async (config, calId, startTime) => {
+    console.log(`start time :- ${startTime}`);
     const startDate1 = startTime;
     // startDate1.setDate(1);
     // startDate1.setMonth(startDate1.getMonth() -1); // Subtract one month from current date
@@ -66,9 +68,10 @@ const getUser = async (email) => {
 }
 
 // const redirectUri = "http://localhost:3000"; 
-const redirectUri = "https://coachclient.vercel.app"
+const redirectUri = process.env.CLIENT_URL;  //"https://coachclient.vercel.app"
 
 const udateData = async(req, res) => {
+    console.log('------------------------------------------------------------------------------------------');
     try{
         const reftk = req.headers.reftk;
         const acctk = req.headers.acctk;
@@ -106,7 +109,8 @@ const udateData = async(req, res) => {
                     let streadId = resp1[0].calId;
                     console.log(`streamId : ${streadId}`);
                     await getCalorieData(config, streadId, resp1[0].lastupdt).then(async (resp2) => {
-                        console.log(resp2);
+                        console.log('``````````````````````````````````````````````````````````````````````````````````````````');
+                        // console.log(resp2);
                         let calorie = calculateCalorie(resp2);
                         console.log(`calorie : ${calorie}`);
                         let calories = resp1[0].calorieBurnt;
@@ -133,7 +137,8 @@ const udateData = async(req, res) => {
                         })
 
                     }).catch((er2) => {
-                        console.log(er2);
+                        console.log(config);
+                        console.log(er2.message);
                         res.status(400).send(er2);
                     })
                 }

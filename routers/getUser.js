@@ -1,4 +1,5 @@
 const userModel = require("../models/user");
+require('dotenv').config();
 
 const getUser = (req, res) => {
     const email = req.body.email;

@@ -1,4 +1,5 @@
 const userModel = require("../models/user");
+require('dotenv').config();
 
 const setExercise = (req, res) => {
     const exercise = req.body.exercise;
@@ -7,9 +8,9 @@ const setExercise = (req, res) => {
     userModel.updateOne({
         email: email
     }, {
-        exercise: exercise
+        exercise: exercise,
+        lastupdt:  Date.now()
     }).then((resp1) => {
-        console.log(resp1);
         res.status(200).send({
             'message': 'Exercise started'
         });
