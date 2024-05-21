@@ -111,7 +111,7 @@ const fetchData = async (req, res) => {
                 if(resp1.status === 200){
                     let email = resp1.data.email;
                     let name = resp1.data.name;
-
+                    console.log(`email : ${email}, name : ${name}`);
                     await getUser(email).then(async (resp2) => {
                         if(resp2 === undefined || resp2.length === 0){
                             fetchStreamIdStore(config).then(async (resp3) => {
@@ -207,11 +207,14 @@ const fetchData = async (req, res) => {
             })
         }
         else{
+            console.log('signin');
             res.status(400).send({
                 'message': 'Please signing again'
             });
         }
     }).catch((er101) => {
+        console.log(`er101 :}`);
+        console.log(er101);
         res.status(400).send(er101);
     })
 
